@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OS Security Vulnerability Detection Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+<!-- Animated grid background -->
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+
+<div class="wrapper">
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="shield-icon">
+        <svg viewBox="0 0 40 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2L4 9v12c0 10.5 6.8 20.3 16 23 9.2-2.7 16-12.5 16-23V9L20 2z" stroke="var(--cyan)" stroke-width="1.5" fill="none"/>
+          <path d="M20 2L4 9v12c0 10.5 6.8 20.3 16 23 9.2-2.7 16-12.5 16-23V9L20 2z" fill="var(--cyan)" fill-opacity="0.06"/>
+          <path d="M13 22l5 5 9-9" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-label">NATIONAL SECURITY FRAMEWORK</div>
+        <h1 class="header-title">OS Vulnerability Detection</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-pill" id="statusPill">
+        <span class="pulse-dot"></span>
+        <span id="statusText">SYSTEM READY</span>
+      </div>
+      <div class="header-time" id="clockEl">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- ── STAT CARDS ── -->
+  <div class="stat-grid">
+    <div class="stat-card" id="statTotal">
+      <div class="stat-label">CHECKS RUN</div>
+      <div class="stat-value" id="statTotalVal">0</div>
+    </div>
+    <div class="stat-card danger" id="statCrit">
+      <div class="stat-label">CRITICAL</div>
+      <div class="stat-value" id="statCritVal">0</div>
+    </div>
+    <div class="stat-card warn" id="statHigh">
+      <div class="stat-label">HIGH</div>
+      <div class="stat-value" id="statHighVal">0</div>
+    </div>
+    <div class="stat-card ok" id="statOk">
+      <div class="stat-label">PASSED</div>
+      <div class="stat-value" id="statOkVal">0</div>
+    </div>
+  </div>
+
+  <!-- ── MAIN GRID ── -->
+  <div class="main-grid">
+
+    <!-- LEFT: Input Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">INPUT VECTOR ANALYSIS</span>
+        <span class="panel-badge">MODULE 1–3</span>
+      </div>
+
+      <label class="field-label">TEST INPUT (Buffer Overflow Probe)</label>
+      <div class="input-wrap">
+        <input type="text" id="userInput" class="main-input" placeholder="Enter payload to test…" autocomplete="off"/>
+        <div class="input-len" id="inputLen">0 / 15</div>
+      </div>
+      <div class="bar-container">
+        <div class="bar-fill" id="inputBar"></div>
+      </div>
+      <div class="hint" id="inputHint">Safe — within threshold</div>
+
+      <div class="divider"></div>
+
+      <label class="field-label">SIMULATION CONTROLS</label>
+      <div class="sim-grid">
+        <button class="sim-btn" onclick="loadPayload('normal')">Normal Input</button>
+        <button class="sim-btn" onclick="loadPayload('overflow')">Overflow Payload</button>
+        <button class="sim-btn" onclick="loadPayload('nop')">NOP Sled</button>
+        <button class="sim-btn" onclick="loadPayload('sql')">SQL Injection</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <label class="field-label">ML SYSTEM METRICS (LIVE SIMULATION)</label>
+      <div class="metric-row">
+        <span class="metric-label">CPU Usage</span>
+        <div class="metric-bar"><div class="metric-fill cpu" id="cpuFill"></div></div>
+        <span class="metric-val" id="cpuVal">--%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Memory</span>
+        <div class="metric-bar"><div class="metric-fill mem" id="memFill"></div></div>
+        <span class="metric-val" id="memVal">--%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Network I/O</span>
+        <div class="metric-bar"><div class="metric-fill net" id="netFill"></div></div>
+        <span class="metric-val" id="netVal">-- MB/s</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Disk I/O</span>
+        <div class="metric-bar"><div class="metric-fill disk" id="diskFill"></div></div>
+        <span class="metric-val" id="diskVal">--%</span>
+      </div>
+
+      <button class="scan-btn" id="scanBtn" onclick="runFullScan()">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        INITIATE SECURITY SCAN
+      </button>
+    </div>
+
+    <!-- RIGHT: Results Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">SCAN RESULTS</span>
+        <button class="clear-btn" onclick="clearResults()">CLEAR</button>
+      </div>
+      <div class="output-box" id="outputBox">
+        <div class="empty-state">
+          <div class="empty-icon">⬡</div>
+          <div>Awaiting scan initiation…</div>
+          <div style="font-size:11px;margin-top:6px;opacity:0.5">Configure input and click INITIATE SECURITY SCAN</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-grid -->
+
+  <!-- ── MODULE STATUS ROW ── -->
+  <div class="module-row">
+    <div class="module-card" id="mod1">
+      <div class="mod-icon">01</div>
+      <div class="mod-name">Buffer Overflow</div>
+      <div class="mod-status" id="mod1s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod2">
+      <div class="mod-icon">02</div>
+      <div class="mod-name">Trapdoor / Backdoor</div>
+      <div class="mod-status" id="mod2s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod3">
+      <div class="mod-icon">03</div>
+      <div class="mod-name">DNS Poisoning</div>
+      <div class="mod-status" id="mod3s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod4">
+      <div class="mod-icon">04</div>
+      <div class="mod-name">Malicious Processes</div>
+      <div class="mod-status" id="mod4s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod5">
+      <div class="mod-icon">05</div>
+      <div class="mod-name">ML Anomaly</div>
+      <div class="mod-status" id="mod5s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod6">
+      <div class="mod-icon">06</div>
+      <div class="mod-name">Privilege Escalation</div>
+      <div class="mod-status" id="mod6s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod7">
+      <div class="mod-icon">07</div>
+      <div class="mod-name">Network Intrusion</div>
+      <div class="mod-status" id="mod7s">IDLE</div>
+    </div>
+    <div class="module-card" id="mod8">
+      <div class="mod-icon">08</div>
+      <div class="mod-name">Log Tampering</div>
+      <div class="mod-status" id="mod8s">IDLE</div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    OS Security Vulnerability Detection Framework &nbsp;|&nbsp; National Security AI Protection Layer &nbsp;|&nbsp; Educational Use Only
+  </footer>
+
+</div><!-- /wrapper -->
+
+<script src="script.js"></script>
+</body>
+</html>

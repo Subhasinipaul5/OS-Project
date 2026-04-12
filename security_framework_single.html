@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>OS Security Vulnerability Detection Framework</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+<!-- ============================================================
+     ALL CSS IS HERE — replaces style.css
+     ============================================================ -->
+<style>
+:root {
+  --bg:       #050810;
+  --bg2:      #090d18;
+  --bg3:      #0d1425;
+  --panel:    #0a1020;
+  --border:   #1a2540;
+  --border2:  #243050;
+  --cyan:     #00e5ff;
+  --cyan2:    #00b4cc;
+  --green:    #00ff88;
+  --red:      #ff2d55;
+  --amber:    #ffb300;
+  --text:     #c8d8f0;
+  --muted:    #4a6080;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-main: 'Rajdhani', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-main);
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+
+.grid-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  animation: gridScroll 30s linear infinite;
+}
+@keyframes gridScroll { to { background-position: 0 48px; } }
+
+.scanline {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom, transparent 0px, transparent 3px,
+    rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+  );
+}
+
+.wrapper {
+  position: relative; z-index: 2;
+  max-width: 1440px; margin: 0 auto;
+  padding: 24px 28px 40px;
+}
+
+/* Header */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); padding-bottom: 18px; margin-bottom: 20px;
+}
+.header-left  { display: flex; align-items: center; gap: 16px; }
+.shield-icon  { width: 46px; flex-shrink: 0; }
+.shield-icon svg { width: 100%; filter: drop-shadow(0 0 8px var(--cyan)); }
+.header-label { font-family: var(--font-mono); font-size: 10px; color: var(--cyan); letter-spacing: 3px; margin-bottom: 2px; }
+.header-title { font-size: 26px; font-weight: 700; letter-spacing: 1px; color: #e8f4ff; }
+.header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+
+.status-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(0,229,255,0.07); border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 20px; padding: 5px 14px;
+  font-family: var(--font-mono); font-size: 11px; color: var(--cyan); letter-spacing: 1px;
+}
+.status-pill.danger   { background: rgba(255,45,85,0.1);  border-color: rgba(255,45,85,0.3);  color: var(--red); }
+.status-pill.scanning { background: rgba(255,179,0,0.08); border-color: rgba(255,179,0,0.3);  color: var(--amber); }
+
+.pulse-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--cyan);
+  animation: pulse 2s infinite;
+}
+.danger .pulse-dot   { background: var(--red); }
+.scanning .pulse-dot { background: var(--amber); }
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 0 currentColor; opacity:1; }
+  50%      { box-shadow: 0 0 0 5px transparent; opacity:.6; }
+}
+.header-time { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+
+/* Stat cards */
+.stat-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px 18px; position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: var(--cyan); opacity: 0.5;
+}
+.stat-card.danger::before { background: var(--red); }
+.stat-card.warn::before   { background: var(--amber); }
+.stat-card.ok::before     { background: var(--green); }
+.stat-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 2px; margin-bottom: 6px; }
+.stat-value { font-family: var(--font-mono); font-size: 32px; color: var(--cyan); }
+.stat-card.danger .stat-value { color: var(--red); }
+.stat-card.warn   .stat-value { color: var(--amber); }
+.stat-card.ok     .stat-value { color: var(--green); }
+
+/* Main grid */
+.main-grid {
+  display: grid; grid-template-columns: 1fr 1.4fr; gap: 16px; margin-bottom: 16px;
+}
+
+/* Panel */
+.panel {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 10px; padding: 20px; display: flex; flex-direction: column; gap: 14px;
+}
+.panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--border); padding-bottom: 12px;
+}
+.panel-title { font-family: var(--font-mono); font-size: 11px; color: var(--cyan); letter-spacing: 2px; }
+.panel-badge {
+  font-family: var(--font-mono); font-size: 10px; padding: 3px 8px;
+  background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 4px; color: var(--cyan2);
+}
+.clear-btn {
+  font-family: var(--font-mono); font-size: 10px; padding: 3px 10px;
+  background: transparent; border: 1px solid var(--border2); border-radius: 4px;
+  color: var(--muted); cursor: pointer; transition: all .2s;
+}
+.clear-btn:hover { border-color: var(--red); color: var(--red); }
+
+/* Input */
+.field-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 1.5px; }
+.input-wrap { position: relative; }
+.main-input {
+  width: 100%; padding: 11px 60px 11px 14px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 6px; color: var(--text); font-family: var(--font-mono); font-size: 14px;
+  outline: none; transition: border-color .2s;
+}
+.main-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 2px rgba(0,229,255,0.1); }
+.main-input.danger { border-color: var(--red); box-shadow: 0 0 0 2px rgba(255,45,85,0.1); }
+.input-len {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+}
+.bar-container { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--green); transition: width .3s, background .3s; border-radius: 2px; }
+.hint { font-family: var(--font-mono); font-size: 11px; color: var(--green); }
+.hint.danger { color: var(--red); }
+
+/* Sim buttons */
+.sim-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.sim-btn {
+  padding: 8px 12px; background: var(--bg3); border: 1px solid var(--border2);
+  border-radius: 5px; color: var(--muted); font-family: var(--font-mono); font-size: 11px;
+  cursor: pointer; transition: all .2s; text-align: left;
+}
+.sim-btn:hover { background: rgba(0,229,255,0.07); border-color: var(--cyan); color: var(--cyan); }
+
+/* Metrics */
+.metric-row { display: flex; align-items: center; gap: 10px; }
+.metric-label { font-family: var(--font-mono); font-size: 11px; color: var(--muted); width: 72px; flex-shrink: 0; }
+.metric-bar { flex: 1; height: 5px; background: var(--bg3); border-radius: 3px; overflow: hidden; }
+.metric-fill { height: 100%; border-radius: 3px; transition: width .8s, background .4s; }
+.metric-fill.cpu  { background: var(--cyan); }
+.metric-fill.mem  { background: #a78bfa; }
+.metric-fill.net  { background: var(--green); }
+.metric-fill.disk { background: var(--amber); }
+.metric-fill.danger { background: var(--red) !important; }
+.metric-val { font-family: var(--font-mono); font-size: 11px; color: var(--text); width: 56px; text-align: right; flex-shrink: 0; }
+
+/* Scan button */
+.scan-btn {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 14px; margin-top: auto;
+  background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.35);
+  border-radius: 7px; color: var(--cyan); font-family: var(--font-main);
+  font-size: 15px; font-weight: 700; letter-spacing: 2px; cursor: pointer;
+  transition: all .25s; position: relative; overflow: hidden;
+}
+.scan-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(0,229,255,0.07), transparent);
+  transform: translateX(-100%);
+}
+.scan-btn:hover::before { animation: shimmer .6s ease forwards; }
+@keyframes shimmer { to { transform: translateX(100%); } }
+.scan-btn:hover { background: rgba(0,229,255,0.14); box-shadow: 0 0 20px rgba(0,229,255,0.15); }
+.scan-btn:active { transform: scale(0.99); }
+.scan-btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-icon { width: 18px; height: 18px; flex-shrink: 0; }
+
+/* Output */
+.output-box {
+  flex: 1; background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 7px; padding: 16px; overflow-y: auto;
+  min-height: 360px; max-height: 520px;
+  font-family: var(--font-mono); font-size: 12.5px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.output-box::-webkit-scrollbar { width: 5px; }
+.output-box::-webkit-scrollbar-track { background: var(--bg3); }
+.output-box::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+.empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; color: var(--muted); font-size: 13px; gap: 8px; text-align: center;
+}
+.empty-icon { font-size: 32px; opacity: .3; }
+
+.result-entry {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 10px; border-radius: 5px; border: 1px solid transparent;
+  animation: fadeIn .3s ease;
+}
+@keyframes fadeIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform:none; } }
+.result-entry.ok       { background: rgba(0,255,136,0.05); border-color: rgba(0,255,136,0.12); }
+.result-entry.high     { background: rgba(255,179,0,0.05); border-color: rgba(255,179,0,0.15); }
+.result-entry.critical { background: rgba(255,45,85,0.06); border-color: rgba(255,45,85,0.2); }
+.result-entry.info     { background: rgba(0,229,255,0.04); border-color: rgba(0,229,255,0.12); }
+.result-entry.section  { background: transparent; border-color: transparent; border-top: 1px solid var(--border); padding-top: 10px; }
+
+.re-icon { flex-shrink: 0; width: 16px; margin-top: 1px; }
+.re-body { flex: 1; }
+.re-title { font-weight: 400; line-height: 1.4; }
+.re-title.ok       { color: var(--green); }
+.re-title.high     { color: var(--amber); }
+.re-title.critical { color: var(--red); }
+.re-title.info     { color: var(--cyan); }
+.re-title.section  { color: var(--muted); font-size: 10px; letter-spacing: 2px; }
+.re-fix { font-size: 11px; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+
+.divider { height: 1px; background: var(--border); }
+
+/* Module row */
+.module-row {
+  display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.module-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 8px; padding: 12px 10px; text-align: center;
+  transition: border-color .3s, background .3s;
+}
+.module-card.active { border-color: var(--amber); background: rgba(255,179,0,0.06); }
+.module-card.ok     { border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.04); }
+.module-card.alert  { border-color: rgba(255,45,85,0.4); background: rgba(255,45,85,0.06); }
+
+.mod-icon   { font-family: var(--font-mono); font-size: 18px; color: var(--border2); margin-bottom: 4px; }
+.mod-name   { font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: .5px; margin-bottom: 5px; line-height: 1.3; }
+.mod-status {
+  font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px;
+  padding: 2px 6px; border-radius: 3px;
+  background: var(--bg3); color: var(--muted); display: inline-block;
+}
+.module-card.active .mod-status { background: rgba(255,179,0,0.15); color: var(--amber); }
+.module-card.ok     .mod-status { background: rgba(0,255,136,0.1);  color: var(--green); }
+.module-card.alert  .mod-status { background: rgba(255,45,85,0.12); color: var(--red); }
+
+.footer {
+  text-align: center; font-family: var(--font-mono); font-size: 10px;
+  color: var(--muted); letter-spacing: 1px; padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 1100px) { .module-row { grid-template-columns: repeat(4,1fr); } }
+@media (max-width: 820px)  { .main-grid { grid-template-columns: 1fr; } .stat-grid { grid-template-columns: repeat(2,1fr); } .module-row { grid-template-columns: repeat(2,1fr); } }
+</style>
+</head>
+<body>
+
+<div class="grid-bg"></div>
+<div class="scanline"></div>
+
+<div class="wrapper">
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="shield-icon">
+        <svg viewBox="0 0 40 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 2L4 9v12c0 10.5 6.8 20.3 16 23 9.2-2.7 16-12.5 16-23V9L20 2z" stroke="var(--cyan)" stroke-width="1.5" fill="none"/>
+          <path d="M20 2L4 9v12c0 10.5 6.8 20.3 16 23 9.2-2.7 16-12.5 16-23V9L20 2z" fill="var(--cyan)" fill-opacity="0.06"/>
+          <path d="M13 22l5 5 9-9" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <div class="header-label">NATIONAL SECURITY FRAMEWORK</div>
+        <h1 class="header-title">OS Vulnerability Detection</h1>
+      </div>
+    </div>
+    <div class="header-right">
+      <div class="status-pill" id="statusPill">
+        <span class="pulse-dot"></span>
+        <span id="statusText">SYSTEM READY</span>
+      </div>
+      <div class="header-time" id="clockEl">--:--:--</div>
+    </div>
+  </header>
+
+  <!-- STAT CARDS -->
+  <div class="stat-grid">
+    <div class="stat-card">
+      <div class="stat-label">CHECKS RUN</div>
+      <div class="stat-value" id="statTotalVal">0</div>
+    </div>
+    <div class="stat-card danger">
+      <div class="stat-label">CRITICAL</div>
+      <div class="stat-value" id="statCritVal">0</div>
+    </div>
+    <div class="stat-card warn">
+      <div class="stat-label">HIGH</div>
+      <div class="stat-value" id="statHighVal">0</div>
+    </div>
+    <div class="stat-card ok">
+      <div class="stat-label">PASSED</div>
+      <div class="stat-value" id="statOkVal">0</div>
+    </div>
+  </div>
+
+  <!-- MAIN GRID -->
+  <div class="main-grid">
+
+    <!-- LEFT: Input Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">INPUT VECTOR ANALYSIS</span>
+        <span class="panel-badge">MODULE 1–3</span>
+      </div>
+
+      <label class="field-label">TEST INPUT (Buffer Overflow Probe)</label>
+      <div class="input-wrap">
+        <input type="text" id="userInput" class="main-input" placeholder="Enter payload to test…" autocomplete="off"/>
+        <div class="input-len" id="inputLen">0 / 15</div>
+      </div>
+      <div class="bar-container">
+        <div class="bar-fill" id="inputBar"></div>
+      </div>
+      <div class="hint" id="inputHint">Safe — within threshold</div>
+
+      <div class="divider"></div>
+
+      <label class="field-label">SIMULATION CONTROLS</label>
+      <div class="sim-grid">
+        <button class="sim-btn" onclick="loadPayload('normal')">Normal Input</button>
+        <button class="sim-btn" onclick="loadPayload('overflow')">Overflow Payload</button>
+        <button class="sim-btn" onclick="loadPayload('nop')">NOP Sled</button>
+        <button class="sim-btn" onclick="loadPayload('sql')">SQL Injection</button>
+      </div>
+
+      <div class="divider"></div>
+
+      <label class="field-label">ML SYSTEM METRICS (LIVE SIMULATION)</label>
+      <div class="metric-row">
+        <span class="metric-label">CPU Usage</span>
+        <div class="metric-bar"><div class="metric-fill cpu" id="cpuFill"></div></div>
+        <span class="metric-val" id="cpuVal">--%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Memory</span>
+        <div class="metric-bar"><div class="metric-fill mem" id="memFill"></div></div>
+        <span class="metric-val" id="memVal">--%</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Network I/O</span>
+        <div class="metric-bar"><div class="metric-fill net" id="netFill"></div></div>
+        <span class="metric-val" id="netVal">-- MB/s</span>
+      </div>
+      <div class="metric-row">
+        <span class="metric-label">Disk I/O</span>
+        <div class="metric-bar"><div class="metric-fill disk" id="diskFill"></div></div>
+        <span class="metric-val" id="diskVal">--%</span>
+      </div>
+
+      <button class="scan-btn" id="scanBtn" onclick="runFullScan()">
+        <svg class="btn-icon" viewBox="0 0 20 20" fill="none">
+          <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        INITIATE SECURITY SCAN
+      </button>
+    </div>
+
+    <!-- RIGHT: Results Panel -->
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">SCAN RESULTS</span>
+        <button class="clear-btn" onclick="clearResults()">CLEAR</button>
+      </div>
+      <div class="output-box" id="outputBox">
+        <div class="empty-state">
+          <div class="empty-icon">⬡</div>
+          <div>Awaiting scan initiation…</div>
+          <div style="font-size:11px;margin-top:6px;opacity:0.5">Configure input and click INITIATE SECURITY SCAN</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODULE STATUS ROW -->
+  <div class="module-row">
+    <div class="module-card" id="mod1"><div class="mod-icon">01</div><div class="mod-name">Buffer Overflow</div><div class="mod-status" id="mod1s">IDLE</div></div>
+    <div class="module-card" id="mod2"><div class="mod-icon">02</div><div class="mod-name">Trapdoor / Backdoor</div><div class="mod-status" id="mod2s">IDLE</div></div>
+    <div class="module-card" id="mod3"><div class="mod-icon">03</div><div class="mod-name">DNS Poisoning</div><div class="mod-status" id="mod3s">IDLE</div></div>
+    <div class="module-card" id="mod4"><div class="mod-icon">04</div><div class="mod-name">Malicious Processes</div><div class="mod-status" id="mod4s">IDLE</div></div>
+    <div class="module-card" id="mod5"><div class="mod-icon">05</div><div class="mod-name">ML Anomaly</div><div class="mod-status" id="mod5s">IDLE</div></div>
+    <div class="module-card" id="mod6"><div class="mod-icon">06</div><div class="mod-name">Privilege Escalation</div><div class="mod-status" id="mod6s">IDLE</div></div>
+    <div class="module-card" id="mod7"><div class="mod-icon">07</div><div class="mod-name">Network Intrusion</div><div class="mod-status" id="mod7s">IDLE</div></div>
+    <div class="module-card" id="mod8"><div class="mod-icon">08</div><div class="mod-name">Log Tampering</div><div class="mod-status" id="mod8s">IDLE</div></div>
+  </div>
+
+  <footer class="footer">
+    OS Security Vulnerability Detection Framework &nbsp;|&nbsp; National Security AI Protection Layer &nbsp;|&nbsp; Educational Use Only
+  </footer>
+
+</div>
+
+<!-- ============================================================
+     ALL JAVASCRIPT IS HERE — replaces script.js
+     ============================================================ -->
+<script>
+const MAX_BUF = 15;
+let isScanning = false;
+let totalChecks = 0, totalCrit = 0, totalHigh = 0, totalOk = 0;
+
+/* Clock */
+function updateClock() {
+  document.getElementById("clockEl").textContent =
+    new Date().toLocaleTimeString("en-GB", { hour12: false });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+/* Live metrics simulation */
+setInterval(() => {
+  const cpu  = Math.round(Math.random() * 60 + 5);
+  const mem  = Math.round(Math.random() * 50 + 20);
+  const net  = +(Math.random() * 8).toFixed(2);
+  const disk = Math.round(Math.random() * 40 + 10);
+  setMetric("cpu",  cpu,  cpu + "%",   cpu  > 80);
+  setMetric("mem",  mem,  mem + "%",   mem  > 85);
+  setMetric("net",  Math.min(net * 12.5, 100), net + " MB/s", net > 5);
+  setMetric("disk", disk, disk + "%",  disk > 90);
+}, 1500);
+
+function setMetric(id, pct, label, danger) {
+  const fill = document.getElementById(id + "Fill");
+  const val  = document.getElementById(id + "Val");
+  fill.style.width = pct + "%";
+  fill.classList.toggle("danger", danger);
+  val.textContent = label;
+  val.style.color = danger ? "var(--red)" : "";
+}
+
+/* Input tracker */
+document.getElementById("userInput").addEventListener("input", function () {
+  const len  = this.value.length;
+  const over = len > MAX_BUF;
+  document.getElementById("inputLen").textContent = `${len} / ${MAX_BUF}`;
+  document.getElementById("inputBar").style.width = Math.min((len / MAX_BUF) * 100, 100) + "%";
+  document.getElementById("inputBar").style.background =
+    over ? "var(--red)" : len > MAX_BUF * 0.7 ? "var(--amber)" : "var(--green)";
+  this.classList.toggle("danger", over);
+  const hint = document.getElementById("inputHint");
+  hint.textContent = over ? `OVERFLOW — exceeds threshold by ${len - MAX_BUF} chars` : "Safe — within threshold";
+  hint.className = "hint" + (over ? " danger" : "");
+});
+
+/* Payload presets */
+function loadPayload(type) {
+  const map = {
+    normal:   "hello_world",
+    overflow: "A".repeat(64) + "BBBBBBBB",
+    nop:      "\x90".repeat(40) + "\xcc\xcc",
+    sql:      "' OR '1'='1'; DROP TABLE users;--",
+  };
+  document.getElementById("userInput").value = map[type] || "";
+  document.getElementById("userInput").dispatchEvent(new Event("input"));
+}
+
+/* Output helpers */
+function clearResults() {
+  document.getElementById("outputBox").innerHTML = `
+    <div class="empty-state">
+      <div class="empty-icon">⬡</div>
+      <div>Results cleared — ready for next scan.</div>
+    </div>`;
+  totalChecks = totalCrit = totalHigh = totalOk = 0;
+  updateStats();
+  ["mod1","mod2","mod3","mod4","mod5","mod6","mod7","mod8"].forEach(id => setModuleState(id,"IDLE",""));
+  setStatus("SYSTEM READY", "");
+}
+
+function addEntry(type, icon, title, fix = "") {
+  const box = document.getElementById("outputBox");
+  const es = box.querySelector(".empty-state");
+  if (es) es.remove();
+  const div = document.createElement("div");
+  div.className = `result-entry ${type}`;
+  div.innerHTML = `<div class="re-icon">${icon}</div><div class="re-body"><div class="re-title ${type}">${title}</div>${fix ? `<div class="re-fix">Fix: ${fix}</div>` : ""}</div>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function addSection(label) {
+  const box = document.getElementById("outputBox");
+  const div = document.createElement("div");
+  div.className = "result-entry section";
+  div.innerHTML = `<div class="re-title section">${label}</div>`;
+  box.appendChild(div);
+}
+
+function updateStats() {
+  document.getElementById("statTotalVal").textContent = totalChecks;
+  document.getElementById("statCritVal").textContent  = totalCrit;
+  document.getElementById("statHighVal").textContent  = totalHigh;
+  document.getElementById("statOkVal").textContent    = totalOk;
+}
+
+function setStatus(text, cls) {
+  document.getElementById("statusPill").className = "status-pill" + (cls ? " " + cls : "");
+  document.getElementById("statusText").textContent = text;
+}
+
+function setModuleState(id, statusText, cls) {
+  document.getElementById(id).className = "module-card" + (cls ? " " + cls : "");
+  document.getElementById(id + "s").textContent = statusText;
+}
+
+const delay = ms => new Promise(r => setTimeout(r, ms));
+
+/* ── Module checks ── */
+async function checkBufferOverflow(input) {
+  setModuleState("mod1","SCANNING…","active");
+  await delay(400);
+  totalChecks++;
+  const len = input.length;
+  const hasSql  = /('|--|;|DROP|SELECT|INSERT|UPDATE|DELETE|UNION)/i.test(input);
+  const hasNull = input.includes("\x00") || input.includes("\x90");
+  const lowDiv  = new Set(input).size <= 2 && len > 8;
+
+  if (len > MAX_BUF) {
+    totalCrit++;
+    addEntry("critical","⬛",`Buffer Overflow — input length ${len} exceeds threshold by ${len - MAX_BUF} chars`,
+      "Use strncpy(), fgets(), stack canaries, ASLR, and input length validation at API gateway.");
+    setModuleState("mod1","ALERT","alert");
+  } else if (hasSql) {
+    totalHigh++;
+    addEntry("high","▲","SQL Injection pattern in input",
+      "Use prepared statements. Never concatenate raw user input into queries.");
+    setModuleState("mod1","WARN","alert");
+  } else if (hasNull || lowDiv) {
+    totalHigh++;
+    addEntry("high","▲","NOP-sled / shellcode pattern detected (low char diversity)",
+      "Reject inputs with abnormal byte patterns. Enable DEP/NX bit and ASLR.");
+    setModuleState("mod1","WARN","alert");
+  } else {
+    totalOk++;
+    addEntry("ok","●",`Buffer Overflow — input safe (length ${len}, threshold ${MAX_BUF})`);
+    setModuleState("mod1","SAFE","ok");
+  }
+  updateStats();
+}
+
+async function checkTrapdoor() {
+  setModuleState("mod2","SCANNING…","active");
+  await delay(600);
+  totalChecks++;
+  const triggered = Math.random() < 0.18;
+  if (triggered) {
+    totalCrit++;
+    addEntry("critical","⬛","Trapdoor/Backdoor File Detected: ./uploads/.hidden_payload.sh",
+      "Delete file, audit user accounts, run antivirus scan, review cron jobs.");
+    setModuleState("mod2","ALERT","alert");
+  } else if (Math.random() < 0.12) {
+    totalHigh++;
+    addEntry("high","▲","File Integrity Violation: /etc/passwd hash mismatch — possible tampering",
+      "Restore from known-good backup. Check audit logs for recent modifications.");
+    setModuleState("mod2","WARN","alert");
+  } else {
+    totalOk++;
+    addEntry("ok","●","Trapdoor Monitor — No suspicious files. File integrity OK.");
+    setModuleState("mod2","SAFE","ok");
+  }
+  updateStats();
+}
+
+async function checkDNS() {
+  setModuleState("mod3","SCANNING…","active");
+  await delay(700);
+  totalChecks++;
+  const domains = {
+    "google.com":  ["142.250.","172.217.","74.125.","216.58.","64.233.","34."],
+    "github.com":  ["140.82.","20.205.","192.30.","185.199."],
+    "openai.com":  ["104.18.","172.64.","104.26."],
+  };
+  let poisoned = false;
+  for (const [domain, prefixes] of Object.entries(domains)) {
+    const poison = Math.random() < 0.1;
+    const ip = poison
+      ? "185.220." + Math.floor(Math.random()*200) + "." + Math.floor(Math.random()*200)
+      : prefixes[0] + Math.floor(Math.random()*200) + "." + Math.floor(Math.random()*200);
+    /* BUG FIX: original had `prefix > ip.startsWith(...)` — wrong operator */
+    const safe = prefixes.some(prefix => ip.startsWith(prefix));
+    if (!safe) {
+      poisoned = true; totalCrit++;
+      addEntry("critical","⬛",`DNS Cache Poisoning — ${domain} resolved to ${ip} (not whitelisted)`,
+        "Flush DNS: sudo systemd-resolve --flush-caches  |  Enable DNSSEC on resolver.");
+      setModuleState("mod3","ALERT","alert");
+    } else {
+      addEntry("ok","●",`DNS Safe — ${domain} → ${ip}`);
+    }
+  }
+  if (!poisoned) { totalOk++; setModuleState("mod3","SAFE","ok"); }
+  updateStats();
+}
+
+async function checkProcesses() {
+  setModuleState("mod4","SCANNING…","active");
+  await delay(800);
+  totalChecks++;
+  const MALICIOUS = ["nc","ncat","hydra","meterpreter","msfconsole","john","hashcat","mimikatz","sqlmap","nikto","gobuster","masscan","airmon-ng"];
+  const SUSP_PORTS = {4444:"Metasploit listener",1337:"Backdoor port",31337:"Elite hacker port",9999:"Reverse shell"};
+  const procs = [{name:"chrome",pid:1023},{name:"nginx",pid:1100},{name:"python3",pid:2001},{name:"sshd",pid:888}];
+  if (Math.random()<0.15) procs.push({name:"nc",pid:3999,user:"unknown"});
+  if (Math.random()<0.10) procs.push({name:"msfconsole",pid:4001,user:"root"});
+  let found = false;
+  for (const p of procs) {
+    if (MALICIOUS.includes(p.name.toLowerCase())) {
+      found = true; totalCrit++;
+      addEntry("critical","⬛",`Malicious Process: ${p.name}  PID:${p.pid}  User:${p.user||"unknown"}`,
+        `Kill: sudo kill -9 ${p.pid}  |  Audit ports: ss -tulnp`);
+      setModuleState("mod4","ALERT","alert");
+    }
+  }
+  if (Math.random()<0.1) {
+    const [port,reason] = Object.entries(SUSP_PORTS)[Math.floor(Math.random()*4)];
+    found = true; totalHigh++;
+    addEntry("high","▲",`Suspicious Listening Port ${port} — ${reason}`,
+      `Close: sudo fuser -k ${port}/tcp  |  Inspect: lsof -i :${port}`);
+  }
+  if (!found) { totalOk++; addEntry("ok","●","Malicious Processes — No threats in process list or port table."); setModuleState("mod4","SAFE","ok"); }
+  updateStats();
+}
+
+async function checkMLAnomaly() {
+  setModuleState("mod5","TRAINING…","active");
+  await delay(1200);
+  totalChecks++;
+  const cpu = Math.round(Math.random()*100), mem = Math.round(Math.random()*100);
+  const net = Math.round(Math.random()*100), disk = Math.round(Math.random()*100);
+  const score = +((-1*(cpu*.4+mem*.3+net*.2+disk*.1)/100)+0.5).toFixed(3);
+  const anomaly = cpu>85 || mem>90 || net>80;
+  if (anomaly) {
+    totalHigh++;
+    addEntry("high","▲",`ML Anomaly — Isolation Forest score:${score} | CPU:${cpu}% MEM:${mem}% NET:${net}%`,
+      "Inspect: top, htop, iotop, nethogs — investigate which processes cause spikes.");
+    setModuleState("mod5","ANOMALY","alert");
+  } else {
+    totalOk++;
+    addEntry("ok","●",`ML Anomaly Detector — Normal (score:${score} | CPU:${cpu}% MEM:${mem}%)`);
+    setModuleState("mod5","NORMAL","ok");
+  }
+  updateStats();
+}
+
+async function checkPrivilege() {
+  setModuleState("mod6","SCANNING…","active");
+  await delay(600);
+  totalChecks++;
+  let found = false;
+  if (Math.random()<0.12) {
+    found = true; totalHigh++;
+    addEntry("high","▲","Unexpected SUID Binary: /usr/local/bin/custom_tool (4755)",
+      "Remove SUID: chmod u-s /usr/local/bin/custom_tool  |  Audit all: find / -perm -4000");
+  }
+  if (Math.random()<0.08) {
+    found = true; totalHigh++;
+    addEntry("high","▲","World-Writable Critical File: /etc/cron.d/job.conf (0777)",
+      "Fix: chmod 644 /etc/cron.d/job.conf  |  Audit: find /etc -perm -o+w");
+  }
+  if (!found) { totalOk++; addEntry("ok","●","Privilege Escalation — No unexpected SUID binaries or world-writable files."); setModuleState("mod6","SAFE","ok"); }
+  else setModuleState("mod6","ALERT","alert");
+  updateStats();
+}
+
+async function checkNetwork() {
+  setModuleState("mod7","SCANNING…","active");
+  await delay(700);
+  totalChecks++;
+  let found = false;
+  if (Math.random()<0.08) {
+    found = true; totalCrit++;
+    addEntry("critical","⬛","Data Exfiltration Alert — 612 MB/s outbound spike detected",
+      "Isolate machine: iptables -A OUTPUT -j DROP  |  Contact security team immediately.");
+    setModuleState("mod7","ALERT","alert");
+  }
+  if (Math.random()<0.12) {
+    found = true; totalHigh++;
+    addEntry("high","▲","Suspicious Connection → 185.220.101.47:4444 (PID 3721)",
+      "Kill: sudo ss -K dst 185.220.101.47  |  Block: iptables -A OUTPUT -d 185.220.101.47 -j DROP");
+    if (!found) setModuleState("mod7","ALERT","alert");
+  }
+  if (!found) { totalOk++; addEntry("ok","●","Network Intrusion — No suspicious connections or bandwidth spikes."); setModuleState("mod7","SAFE","ok"); }
+  updateStats();
+}
+
+async function checkLogTampering() {
+  setModuleState("mod8","SCANNING…","active");
+  await delay(500);
+  totalChecks++;
+  if (Math.random()<0.1) {
+    const logs = ["/var/log/auth.log","/var/log/syslog","/var/log/kern.log"];
+    totalCrit++;
+    addEntry("critical","⬛",`Log Tampering — ${logs[Math.floor(Math.random()*3)]} shrunk (48320 → 0 bytes)`,
+      "Restore from backup. Set immutable: chattr +a /var/log/auth.log  |  Review auditd rules.");
+    setModuleState("mod8","ALERT","alert");
+  } else {
+    totalOk++;
+    addEntry("ok","●","Log Integrity — All critical log files intact, sizes nominal.");
+    setModuleState("mod8","SAFE","ok");
+  }
+  updateStats();
+}
+
+/* Main scan orchestrator */
+async function runFullScan() {
+  if (isScanning) return;
+  isScanning = true;
+  const btn = document.getElementById("scanBtn");
+  btn.disabled = true;
+  btn.textContent = "SCANNING…";
+  totalChecks = totalCrit = totalHigh = totalOk = 0;
+  updateStats();
+  document.getElementById("outputBox").innerHTML = "";
+  setStatus("SCANNING","scanning");
+
+  addSection("SCAN INITIATED — " + new Date().toLocaleTimeString());
+  addEntry("info","i",`Host: ${location.hostname||"localhost"}  |  Input length: ${document.getElementById("userInput").value.length}  |  Threshold: ${MAX_BUF}`);
+
+  addSection("MODULE 01 — BUFFER OVERFLOW DETECTION");
+  await checkBufferOverflow(document.getElementById("userInput").value);
+  addSection("MODULE 02 — TRAPDOOR & FILE INTEGRITY");
+  await checkTrapdoor();
+  addSection("MODULE 03 — DNS CACHE POISONING");
+  await checkDNS();
+  addSection("MODULE 04 — MALICIOUS PROCESS DETECTION");
+  await checkProcesses();
+  addSection("MODULE 05 — ML ANOMALY DETECTION");
+  await checkMLAnomaly();
+  addSection("MODULE 06 — PRIVILEGE ESCALATION");
+  await checkPrivilege();
+  addSection("MODULE 07 — NETWORK INTRUSION");
+  await checkNetwork();
+  addSection("MODULE 08 — LOG TAMPERING");
+  await checkLogTampering();
+
+  addSection("SCAN COMPLETE");
+  const verdict = totalCrit>0 ? "critical" : totalHigh>0 ? "high" : "ok";
+  const icons   = {critical:"⬛",high:"▲",ok:"●"};
+  const msgs    = {
+    critical:`CRITICAL THREATS FOUND — ${totalCrit} critical, ${totalHigh} high. Immediate action required.`,
+    high:    `WARNINGS DETECTED — ${totalHigh} high-severity issue(s) need attention.`,
+    ok:      `ALL CLEAR — ${totalOk} checks passed. No active threats detected.`,
+  };
+  addEntry(verdict, icons[verdict], msgs[verdict]);
+
+  if (totalCrit>0) setStatus("THREATS DETECTED","danger");
+  else if (totalHigh>0) setStatus("WARNINGS ACTIVE","scanning");
+  else setStatus("ALL CLEAR","");
+
+  btn.disabled = false;
+  btn.innerHTML = `<svg class="btn-icon" viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="1.5"/><path d="M10 6v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg> INITIATE SECURITY SCAN`;
+  isScanning = false;
+}
+</script>
+</body>
+</html>
