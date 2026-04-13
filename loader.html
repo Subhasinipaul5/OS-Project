@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Preloader</title>
+
+<style>
+/* ===== PRELOADER ===== */
+#preloader {
+  position: fixed;
+  inset: 0;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  transition: opacity 0.8s ease;
+}
+
+/* CENTER BOX */
+.loader-box {
+  width: 300px;
+  text-align: center;
+}
+
+/* LOGO */
+.logo {
+  width: 200px;
+  height: 100px;
+  margin: auto;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #00e5ff, #0077ff);
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px rgba(0,255,255,0.3);
+  animation: pop 1s ease;
+}
+
+/* LOGO ANIMATION */
+@keyframes pop {
+  from { transform: scale(0.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+/* TEXT */
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+  color: gray;
+  font-size: 20px;
+  letter-spacing: 3px;
+}
+
+/* BAR */
+.progress-bar {
+  height: 2px;
+  background: rgba(255,255,255,0.1);
+  margin-top: 10px;
+  overflow: hidden;
+}
+
+#progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(to right, transparent, #00e5ff, transparent);
+  transition: width 0.2s linear;
+}
+
+/* BOTTOM TEXT */
+.bottom-text {
+  margin-top: 20px;
+  font-size: 15px;
+  color: #666;
+  letter-spacing: 2px;
+}
+
+/* ===== MAIN CONTENT ===== */
+#main-content {
+  display: none;
+  text-align: center;
+  margin-top: 100px;
+  font-family: Arial;
+}
+</style>
+
+</head>
+<body>
+
+<!-- PRELOADER -->
+<div id="preloader">
+  <div class="loader-box">
+
+    <div class="logo">ThreatOS</div>
+
+    <div class="progress-text">
+      <span>INITIALISING</span>
+      <span id="percent">0%</span>
+    </div>
+
+    <div class="progress-bar">
+      <div id="progress-fill"></div>
+    </div>
+
+    <p class="bottom-text">Vulnerability Detection</p>
+
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="main-content">
+  
+</div>
+
+<script>
+let progress = 0;
+
+const percentText = document.getElementById("percent");
+const progressFill = document.getElementById("progress-fill");
+const preloader = document.getElementById("preloader");
+const mainContent = document.getElementById("main-content");
+
+const interval = setInterval(() => {
+  progress++;
+
+  percentText.textContent = progress + "%";
+  progressFill.style.width = progress + "%";
+
+  if (progress >= 100) {
+    clearInterval(interval);
+
+   setTimeout(() => {
+  preloader.style.opacity = "0";
+
+  setTimeout(() => {
+    window.location.href = "index.html"; // 🔥 redirect here
+  }, 800);
+
+}, 500);
+  }
+
+}, 30);
+</script>
+
+</body>
+</html>
