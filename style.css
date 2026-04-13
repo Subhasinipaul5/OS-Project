@@ -23,6 +23,297 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* Theme Toggle Button */
+.theme-btn {
+  margin-top: 6px;
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--cyan);
+  padding: 4px 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.theme-btn:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 5px var(--cyan);
+}
+
+/* Light Mode */   changes the color variables to a lighter palette while keeping the same structure */
+/* .light-mode {
+  --bg: #f5f7fb;
+  --bg2: #ffffff;
+  --bg3: #e6ecf5;
+  --panel: #ffffff;
+  --border: #d0d7e2;
+  --border2: #b8c2d1;
+  --text: #1a1a1a;
+  --muted: #5c6b7a;
+} */
+ body.light-mode {
+  --bg: #f4f7fb;
+  --bg2: #ffffff;
+  --bg3: #e9eef5;
+  --panel: #ffffff;
+  --border: #d6dce6;
+  --border2: #c3ccd8;
+  --text: #111;
+  --muted: #555;
+}
+/* ── Apply Light Background Properly ───────────────── */
+
+body.light-mode {
+  background: var(--bg);
+}
+
+/* panels */
+body.light-mode .panel,
+body.light-mode .stat-card,
+body.light-mode .output-box {
+  background: var(--panel);
+}
+
+/* inputs */
+body.light-mode .main-input {
+  background: var(--bg2);
+}
+
+/* bars & small sections */
+body.light-mode .bar-container,
+body.light-mode .metric-bar {
+  background: var(--bg3);
+}
+
+/* ── Light Mode Text Fix ───────────────────────── */
+
+body.light-mode {
+  color: #111; 
+}
+
+
+body.light-mode .header-title {
+  color: #000;
+}
+
+
+body.light-mode .header-label,
+body.light-mode .field-label,
+body.light-mode .panel-title,
+body.light-mode .stat-label {
+  color: #444;
+}
+
+
+body.light-mode .stat-value {
+  color: #000;
+}
+
+
+body.light-mode .main-input {
+  color: #000;
+}
+
+
+body.light-mode .re-title {
+  color: #000;
+}
+
+
+body.light-mode .hint {
+  color: #333;
+}
+
+body.light-mode .output-box {
+  color: #111;
+}
+body.light-mode .panel {
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}  
+
+
+html.light-mode,
+body.light-mode {
+  background: #f4f7fb !important;
+}
+body.light-mode .grid-bg {
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+}
+body.light-mode .scanline {
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0,0,0,0.03) 3px,
+    rgba(0,0,0,0.03) 4px
+  );
+}
+
+/* ////////////////////// */
+/* ── Light Mode Text Final Fix ───────────────── */
+
+body.light-mode {
+  color: #111;
+}
+
+body.light-mode * {
+  color: inherit;
+}
+/* ── Light Blue Boxes ───────────────── */
+
+body.light-mode .panel,
+body.light-mode .stat-card,
+body.light-mode .output-box {
+  background: #d1cffc;   /* light blue */
+  border: 1px solid #021128;
+}
+body.light-mode .sim-btn,
+body.light-mode .scan-btn {
+  background: hsl(176, 92%, 90%);
+  border: 1px solid #74b5fb;
+  color: #003366;
+}
+body.light-mode .panel {
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+}
+
+/* ── Input Field Light Mode Fix ───────────────── */
+
+body.light-mode .main-input {
+  background: #f6eaea;   /* light background */
+  color: #000000;        /* black text */
+  border: 1px solid #001534;
+}
+
+/* placeholder text */
+body.light-mode .main-input::placeholder {
+  color: #3a0a0a;
+}
+/* ── Module Boxes Light Mode Fix ───────────────── */
+
+body.light-mode .module-card {
+  background: #e6f2ff;   /* light blue */
+  border: 1px solid #a3cfff;
+  color: #0b4039;
+  font-size: 8px;
+}
+
+/* module title text */
+body.light-mode .mod-name {
+  color: #0a2123;
+  font-size:15px ;
+}
+/* ===== FIX: SAFE / ALERT TEXT VISIBILITY (LIGHT MODE) ===== */
+
+body.light-mode .mod-status {
+  font-weight: 700;
+  letter-spacing: 1px;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 5px;
+}
+
+/* SAFE (green) */
+body.light-mode .module-card.ok .mod-status {
+  background: #d4edda;
+  color: #14532d;   /* dark green */
+  border: 1px solid #86efac;
+}
+
+/* ALERT (red) */
+body.light-mode .module-card.alert .mod-status {
+  background: #f8d7da;
+  color: #7f1d1d;   /* dark red */
+  border: 1px solid #fca5a5;
+}
+
+/* SCANNING (yellow) */
+body.light-mode .module-card.active .mod-status {
+  background: #fff3cd;
+  color: #78350f;
+  border: 1px solid #fde68a;
+}
+
+/* DEFAULT */
+body.light-mode .mod-status {
+  background: #e0f2fe;
+  color: #0c4a6e;
+  border: 1px solid #7dd3fc;
+}
+
+/* Text visibility improve */
+body.light-mode .module-card {
+  color: #0f172a;
+}
+
+body.light-mode .mod-name {
+  color: #020617;
+  font-weight: 600;
+}
+
+/* module status text */
+body.light-mode .mod-status {
+  background: #d9ecff;
+  color: #003366;
+}
+body.light-mode .module-card.active {
+  background: #f3dc91;
+  border-color: #1e1a06;
+}
+
+body.light-mode .module-card.ok {
+  background: #9aeeae;
+  border-color: #031e09;
+}
+
+body.light-mode .module-card.alert {
+  background: #edb4b8;
+  border-color: #8f121e;
+
+}
+
+/* scan results css and  */
+body.light-mode .result-entry.ok {
+  background: #d4f8e8;
+  border-color: #2ecc71;
+}
+body.light-mode .result-entry.high {
+  background: #fff3cd;
+  border-color: #ffb300;
+}
+body.light-mode .result-entry.critical {
+  background: #f8d7da;
+  border-color: #ff2d55;
+}
+body.light-mode .result-entry.info {
+  background: #d1ecf1;
+  border-color: #00e5ff;
+}
+/* changes in lightmode on os vulnerability symbol */
+body.light-mode .shield-icon svg {
+  filter: drop-shadow(0 0 8px #fefff9);
+  color: #00e5ff;
+}
+/* color change in border hover of lightbulb moon*/
+body.light-mode .theme-btn:hover {
+  border-color: #010707;
+  box-shadow: 0 0 7px #141c1d;
+  background-color: #f3f3fa;
+}
+/*  */
+/* making changing in last 8 divs inside it  there is written alert,analogy , scanning and safe , need to highlight it on lightmode  */
+body.light-mode .status-pill.danger {
+  background: rgba(255, 45, 85, 0.15);
+  border-color: rgba(255, 45, 85, 0.3);
+  color: #ff2d55;
+  font-size: 12px;
+}
+
+
+/* changes completes */
+
 html, body {
   min-height: 100vh;
   background: var(--bg);
@@ -131,7 +422,7 @@ html, body {
   display: flex; align-items: center; justify-content: space-between;
   border-bottom: 1px solid var(--border); padding-bottom: 12px;
 }
-.panel-title { font-family: var(--font-mono); font-size: 11px; color: var(--cyan); letter-spacing: 2px; }
+.panel-title { font-family: var(--font-mono); font-size: 18px; color: var(--cyan); letter-spacing: 2px; }
 .panel-badge {
   font-family: var(--font-mono); font-size: 10px; padding: 3px 8px;
   background: rgba(0,229,255,0.08); border: 1px solid rgba(0,229,255,0.2);
@@ -145,7 +436,7 @@ html, body {
 .clear-btn:hover { border-color: var(--red); color: var(--red); }
 
 /* ── Input ── */
-.field-label { font-family: var(--font-mono); font-size: 10px; color: var(--muted); letter-spacing: 1.5px; }
+.field-label { font-family: var(--font-mono); font-size: 15px; color: var(--muted); letter-spacing: 1px; }
 
 .input-wrap { position: relative; }
 .main-input {
@@ -158,13 +449,13 @@ html, body {
 .main-input.danger { border-color: var(--red); box-shadow: 0 0 0 2px rgba(255,45,85,0.1); }
 .input-len {
   position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-  font-family: var(--font-mono); font-size: 10px; color: var(--muted);
+  font-family: var(--font-mono); font-size: 12px; color: var(--muted);
 }
 
 .bar-container { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; }
 .bar-fill { height: 100%; background: var(--green); transition: width .3s, background .3s; border-radius: 2px; }
 
-.hint { font-family: var(--font-mono); font-size: 11px; color: var(--green); }
+.hint { font-family: var(--font-mono); font-size: 13px; color: var(--green); }
 .hint.danger { color: var(--red); }
 
 /* ── Simulation buttons ── */
@@ -293,4 +584,4 @@ html, body {
   .main-grid { grid-template-columns: 1fr; }
   .stat-grid { grid-template-columns: repeat(2,1fr); }
   .module-row { grid-template-columns: repeat(2,1fr); }
-}
+} 
