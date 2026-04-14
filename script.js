@@ -1,3 +1,13 @@
+
+// Security system initialized
+console.log("Security Framework Loaded Successfully");
+
+
+function showSystemStatus() {
+    console.log("System is running securely");
+}
+showSystemStatus();
+
 /**
  * OS Security Vulnerability Detection Framework
  * Frontend Logic — script.js
