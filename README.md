@@ -1,8 +1,23 @@
+## OS project
+## Team Members
+
+- Vanshika  
+- Shaheen  
+- Subhashini  
+##  Objective
+
+The goal of this project is to design a security framework that detects multiple types of vulnerabilities in an operating system environment using a combination of rule-based detection and machine learning techniques.
 # OS Security Vulnerability Detection Framework
 ### National Security AI Protection Layer — v2.0
 
 ---
+## Key Features
 
+- Real-time system monitoring  
+- Detection of multiple attack types  
+- Machine Learning-based anomaly detection  
+- Interactive web dashboard  
+- Lightweight and efficient scanning  
 ## Project Structure
 
 ```
