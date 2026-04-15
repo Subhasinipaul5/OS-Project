@@ -23,6 +23,20 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* add loader css  */
+#loader {
+       position: fixed;
+       width: 100%;
+       height: 100%;
+       background: black;
+       color: cyan;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       z-index: 9999;
+       font-size: 20px;
+}
+
 /* Theme Toggle Button */
 .theme-btn {
   margin-top: 6px;
