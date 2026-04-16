@@ -599,3 +599,8 @@ html, body {
   .stat-grid { grid-template-columns: repeat(2,1fr); }
   .module-row { grid-template-columns: repeat(2,1fr); }
 } 
+.panel:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+  transition: all 0.3s ease;
+}
