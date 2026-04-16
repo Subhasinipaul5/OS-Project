@@ -601,6 +601,9 @@ html, body {
 } 
 .panel:hover {
   border-color: var(--cyan);
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
-  transition: all 0.3s ease;
+  box-shadow: 
+    0 0 14px rgba(0, 229, 255, 0.35),
+    0 0 28px rgba(0, 229, 255, 0.12);
+  transform: translateY(-4px);
+  transition: all 0.25s ease-in-out;
 }
