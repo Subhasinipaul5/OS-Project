@@ -5,8 +5,11 @@
 - Shaheen  
 - Subhashini  
 ##  Objective
+The primary objective of this project is to design and develop an advanced Operating System Security Vulnerability Detection Framework capable of identifying a wide range of security threats and system vulnerabilities. The framework integrates both rule-based detection techniques and machine learning approaches to ensure accurate, efficient, and real-time analysis of system behavior.
 
-The goal of this project is to design a security framework that detects multiple types of vulnerabilities in an operating system environment using a combination of rule-based detection and machine learning techniques.
+This system aims to monitor critical components such as processes, memory usage, network activity, and file integrity to detect suspicious patterns and potential threats. The rule-based mechanism focuses on identifying known vulnerabilities using predefined security rules, while the machine learning component enhances the system’s ability to recognize unknown or emerging threats through pattern analysis and anomaly detection.
+
+Additionally, the framework is designed to provide clear and actionable insights by categorizing detected vulnerabilities based on severity levels (e.g., low, high, critical) and suggesting possible mitigation strategies. The overall goal is to improve system reliability, strengthen cybersecurity measures, and provide an interactive and user-friendly interface for monitoring and analysis.
 # OS Security Vulnerability Detection Framework
 ### National Security AI Protection Layer — v2.0
 
