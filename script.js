@@ -448,7 +448,7 @@ async function runFullScan() {
   box.innerHTML = "";
   setStatus("SCANNING", "scanning");
 
-  addSection("▸ SCAN INITIATED — " + new Date().toLocaleTimeString());
+  addSection("▸ SCAN INITIATED — " + new Date().toLocaleTimeString() + " | System Monitoring Activated");
   addEntry("info", "ℹ", `Host: ${window.location.hostname || "localhost"}  |  Input length: ${input.length}  |  Threshold: ${MAX_BUF}`);
 
   // Run all 8 modules sequentially with section headers
