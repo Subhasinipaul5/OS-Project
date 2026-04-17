@@ -36,8 +36,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 40px rgba(0,255,255,0.3);
-  animation: pop 1s ease;
+  box-shadow: 0 0 20px rgba(0,255,255,0.3);
+  animation: pop 1s ease, glowPulse 2s infinite alternate;
+}
+
+/* NEW glow animation */
+@keyframes glowPulse {
+  from { box-shadow: 0 0 15px rgba(0,255,255,0.2); }
+  to   { box-shadow: 0 0 40px rgba(0,255,255,0.6); }
 }
 
 /* LOGO ANIMATION */
