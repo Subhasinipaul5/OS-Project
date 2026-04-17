@@ -83,6 +83,7 @@ function loadPayload(type) {
   };
   document.getElementById("userInput").value = map[type] || "";
   document.getElementById("userInput").dispatchEvent(new Event("input"));
+    console.log(`Payload loaded: ${type}`);
 }
 
 // ── Output helpers ─────────────────────────────────────────────
